@@ -3,7 +3,7 @@ import javax.validation.constraints.NotBlank;
 
 public class LoginRequest {
     @NotBlank
-    private String email;
+    private String login;
 
     @NotBlank
     private String password;
@@ -17,11 +17,11 @@ public class LoginRequest {
         this.password = password;
     }
 
-    public String getEmail() {
-        return email;
+    public String getLogin() {
+        return login;
     }
 
-    public void setEmail(String email) {
-        this.email = email;
+    public void setLogin(String login) {
+        this.login = login;
     }
 }
