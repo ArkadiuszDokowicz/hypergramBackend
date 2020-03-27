@@ -16,7 +16,7 @@ import com.hypergram.loginapp.payload.response.JwtResponse;
 import com.hypergram.loginapp.payload.response.MessageResponse;
 import com.hypergram.loginapp.repository.RoleRepository;
 import com.hypergram.loginapp.repository.UserRepository;
-import com.hypergram.loginapp.security.jwt.JwtMyBuilder;
+import com.hypergram.loginapp.security.jwt.JwtTokenUtil;
 import com.hypergram.loginapp.security.services.UserDetailsImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -47,13 +47,13 @@ public class AuthController {
     PasswordEncoder encoder;
 
     @Autowired
-    JwtMyBuilder jwtBuilder;
+    JwtTokenUtil jwtBuilder;
 
     @PostMapping("/signin")
     public ResponseEntity<?> authenticateUser(@Valid @RequestBody LoginRequest loginRequest) {
 
         Authentication authentication = authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(loginRequest.getLogin(), loginRequest.getPassword()));
+                new UsernamePasswordAuthenticationToken(loginRequest.getUsername(), loginRequest.getPassword()));
 
         SecurityContextHolder.getContext().setAuthentication(authentication);
         String jwt = jwtBuilder.generateJwtToken(authentication);

@@ -12,13 +12,13 @@ import org.springframework.stereotype.Component;
 import io.jsonwebtoken.*;
 
 @Component
-public class JwtMyBuilder {
-    private static final Logger logger = LoggerFactory.getLogger(JwtMyBuilder.class);
+public class JwtTokenUtil {
+    private static final Logger logger = LoggerFactory.getLogger(JwtTokenUtil.class);
 
-    @Value("${bezkoder.app.jwtSecret}")
+    @Value("${mysettings.app.jwtSecret}")
     private String jwtSecret;
 
-    @Value("${bezkoder.app.jwtExpirationMs}")
+    @Value("${mysettings.app.jwtExpirationMs}")
     private int jwtExpirationMs;
 
     public String generateJwtToken(Authentication authentication) {
@@ -26,7 +26,7 @@ public class JwtMyBuilder {
         UserDetailsImpl userPrincipal = (UserDetailsImpl) authentication.getPrincipal();
 
         return Jwts.builder()
-                .setSubject((userPrincipal.getEmail()))
+                .setSubject((userPrincipal.getUsername()))
                 .setIssuedAt(new Date())
                 .setExpiration(new Date((new Date()).getTime() + jwtExpirationMs))
                 .signWith(SignatureAlgorithm.HS512, jwtSecret)
