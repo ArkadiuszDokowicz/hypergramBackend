@@ -48,6 +48,11 @@ public class UserController {
             throw new ResponseStatusException(
                     HttpStatus.BAD_REQUEST, "Passwords are not the same");
         }
+        if (cpRequest.getPassword().equals(cpRequest.getPasswordNew1())){
+            logger.warn("Bad request new password is the same");
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST, "The new password is no different from the old one");
+        }
         user.get().setPassword(encoder.encode(cpRequest.getPasswordNew1()));
         userRepository.save(user.get());
         return ResponseEntity.ok(new MessageResponse("PasswordChanged"));
