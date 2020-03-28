@@ -7,5 +7,4 @@ public class LoginappApplication {
     public static void main(String[] args) {
         SpringApplication.run(LoginappApplication.class, args);
     }
-
 }
