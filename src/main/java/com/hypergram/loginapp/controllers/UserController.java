@@ -2,6 +2,7 @@ package com.hypergram.loginapp.controllers;
 
 import com.hypergram.loginapp.model.User;
 import com.hypergram.loginapp.payload.request.ChangePasswdRequest;
+import com.hypergram.loginapp.payload.request.PasswordQuestionRequest;
 import com.hypergram.loginapp.payload.response.MessageResponse;
 import com.hypergram.loginapp.repository.UserRepository;
 import org.slf4j.Logger;
@@ -13,9 +14,9 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.server.ResponseStatusException;
 
 import javax.validation.Valid;
@@ -38,8 +39,7 @@ public class UserController {
 
     @PreAuthorize("#cpRequest.username == authentication.principal.username")
     @PostMapping("/changePassword")
-    public ResponseEntity<?> authenticateUser(@Valid @RequestBody ChangePasswdRequest cpRequest) {
-
+    public ResponseEntity<?> changePassword(@Valid @RequestBody ChangePasswdRequest cpRequest) {
         Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(cpRequest.getUsername(), cpRequest.getPassword()));
         Optional<User> user= userRepository.findByUsername(cpRequest.getUsername());
@@ -52,4 +52,12 @@ public class UserController {
         userRepository.save(user.get());
         return ResponseEntity.ok(new MessageResponse("PasswordChanged"));
     }
+    @PreAuthorize("#pqRequest.username == authentication.principal.username")
+    @PostMapping("/addRemindingPasswordQuestion")
+    public ResponseEntity<?> addPasswordQuestion(@Valid @RequestBody PasswordQuestionRequest pqRequest){
+        Authentication authentication = authenticationManager.authenticate(
+                new UsernamePasswordAuthenticationToken(pqRequest.getUsername(), pqRequest.getPassword()));
+        Optional<User> user= userRepository.findByUsername(pqRequest.getUsername());
+
+
 }
