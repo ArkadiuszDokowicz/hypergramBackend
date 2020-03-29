@@ -3,6 +3,7 @@ package com.hypergram.loginapp.controllers;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import com.hypergram.loginapp.security.services.UserDetailsImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
@@ -23,7 +24,7 @@ import com.hypergram.loginapp.model.ResponseMessage;
 import com.hypergram.loginapp.service.FilesStorageService;
 
 @Controller
-@CrossOrigin("http://localhost:8081")
+@CrossOrigin(origins = "*", maxAge = 3600)
 public class FilesController {
 
     @Autowired

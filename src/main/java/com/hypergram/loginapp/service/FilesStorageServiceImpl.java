@@ -7,6 +7,8 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.stream.Stream;
 
+import com.hypergram.loginapp.controllers.AuthController;
+import com.hypergram.loginapp.security.services.UserDetailsImpl;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
 import org.springframework.stereotype.Service;
@@ -16,6 +18,7 @@ import org.springframework.web.multipart.MultipartFile;
 @Service
 public class FilesStorageServiceImpl implements FilesStorageService {
 
+    UserDetailsImpl userDetails;
     private final Path root = Paths.get("uploads");
 
     @Override

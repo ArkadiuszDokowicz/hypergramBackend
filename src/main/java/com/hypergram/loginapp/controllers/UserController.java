@@ -42,13 +42,13 @@ public class UserController {
 
         Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(cpRequest.getUsername(), cpRequest.getPassword()));
-        Optional<User> user= userRepository.findByUsername(cpRequest.getUsername());
-        if(!cpRequest.getPasswordNew1().equals(cpRequest.getPasswordNew2())){
+        Optional<User> user = userRepository.findByUsername(cpRequest.getUsername());
+        if (!cpRequest.getPasswordNew1().equals(cpRequest.getPasswordNew2())) {
             logger.warn("Bad request passwords are not the same");
             throw new ResponseStatusException(
                     HttpStatus.BAD_REQUEST, "Passwords are not the same");
         }
-        if (cpRequest.getPassword().equals(cpRequest.getPasswordNew1())){
+        if (cpRequest.getPassword().equals(cpRequest.getPasswordNew1())) {
             logger.warn("Bad request new password is the same");
             throw new ResponseStatusException(
                     HttpStatus.BAD_REQUEST, "The new password is no different from the old one");
