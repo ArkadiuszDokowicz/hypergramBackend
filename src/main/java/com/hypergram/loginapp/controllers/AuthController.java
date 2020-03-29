@@ -1,41 +1,48 @@
 package com.hypergram.loginapp.controllers;
 
+import java.security.NoSuchAlgorithmException;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 import javax.validation.Valid;
+import javax.xml.ws.Response;
 
 import com.hypergram.loginapp.model.ERole;
 import com.hypergram.loginapp.model.Role;
 import com.hypergram.loginapp.model.User;
 import com.hypergram.loginapp.payload.request.LoginRequest;
+import com.hypergram.loginapp.payload.request.SetNewPasswordRequest;
 import com.hypergram.loginapp.payload.request.SignupRequest;
 import com.hypergram.loginapp.payload.response.JwtResponse;
 import com.hypergram.loginapp.payload.response.MessageResponse;
 import com.hypergram.loginapp.repository.RoleRepository;
 import com.hypergram.loginapp.repository.UserRepository;
 import com.hypergram.loginapp.security.jwt.JwtTokenUtil;
+import com.hypergram.loginapp.security.services.RemindingPasswordService;
 import com.hypergram.loginapp.security.services.UserDetailsImpl;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
+
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RestController
 @RequestMapping("/api/auth")
 public class AuthController {
     @Autowired
     AuthenticationManager authenticationManager;
+
+    @Autowired
+    RemindingPasswordService remindingPasswordService;
 
     @Autowired
     UserRepository userRepository;
@@ -123,5 +130,36 @@ public class AuthController {
         userRepository.save(user);
 
         return ResponseEntity.ok(new MessageResponse("User registered successfully!"));
+    }
+
+    @GetMapping("/getSecurityQuestion")
+    public ResponseEntity<?> getSecurityQuestion(@RequestParam String username){
+        if(!userRepository.existsByUsername(username)){
+            return ResponseEntity.badRequest().body(new MessageResponse("user not exist"));
+        }
+        return ResponseEntity.ok().body(remindingPasswordService.getRandomQuestion(username));
+    }
+    @PostMapping("/setNewPasswordFromSecurityQuestion")
+    public ResponseEntity<?> setNewPassword(@Valid @RequestBody SetNewPasswordRequest request){
+        try {
+            if(remindingPasswordService.validateQuestion(request.getUsername(),request.getQuestionId(),request.getAnswer())){
+                Optional<User> user= userRepository.findByUsername(request.getUsername());
+                if(request.getPassword1().equals(request.getPassword2())){
+                    user.get().setPassword(encoder.encode(request.getPassword1()));
+                    userRepository.save(user.get());
+                    return ResponseEntity.ok(new MessageResponse("Password changed"));
+                }else{
+                    throw new ResponseStatusException(
+                            HttpStatus.BAD_REQUEST, "Password are not the same");
+                }
+            }else{
+                throw new ResponseStatusException(
+                        HttpStatus.UNAUTHORIZED, "Answer is not valid");
+            }
+        } catch (NoSuchAlgorithmException e) {
+            e.printStackTrace();
+            throw new ResponseStatusException(
+                    HttpStatus.INTERNAL_SERVER_ERROR, "Service not available");
+        }
     }
 }

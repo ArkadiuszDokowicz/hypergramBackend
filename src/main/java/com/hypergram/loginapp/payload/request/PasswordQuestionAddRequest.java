@@ -1,17 +1,36 @@
 package com.hypergram.loginapp.payload.request;
 
-public class PasswordQuestionRequest {
-    String username;
-    String password;
-    String question;
-    String answer;
+import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.Size;
 
+public class PasswordQuestionAddRequest {
+    @NotEmpty
+    String username;
+    @NotEmpty
+    String password;
+    @NotEmpty
+    @Size(min = 6, max = 60)
+    String question;
+    @NotEmpty
+    @Size(min = 6, max = 60)
+    String answer;
+    @NotEmpty
+    @Size(min = 6, max = 60)
+    String answer2;
     public String getPassword() {
         return password;
     }
 
     public void setPassword(String password) {
         this.password = password;
+    }
+
+    public String getAnswer2() {
+        return answer2;
+    }
+
+    public void setAnswer2(String answer2) {
+        this.answer2 = answer2;
     }
 
     public String getUsername() {
