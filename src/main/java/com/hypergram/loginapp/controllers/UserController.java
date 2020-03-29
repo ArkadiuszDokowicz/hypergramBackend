@@ -88,7 +88,7 @@ public class UserController {
         }
     }
     @PreAuthorize("#pqRequest.username == authentication.principal.username")
-    @GetMapping("/getSecurityQuestions")
+    @PostMapping("/getSecurityQuestions")
     public ResponseEntity<?> getQuestions(@Valid @RequestBody PasswordQuestionGetRequest pqRequest){
         Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(pqRequest.getUsername(), pqRequest.getPassword()));
