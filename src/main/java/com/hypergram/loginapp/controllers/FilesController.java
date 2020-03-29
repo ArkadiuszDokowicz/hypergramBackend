@@ -23,7 +23,7 @@ import com.hypergram.loginapp.model.ResponseMessage;
 import com.hypergram.loginapp.service.FilesStorageService;
 
 @Controller
-@CrossOrigin(origins = "*", maxAge = 3600)
+@CrossOrigin("http://localhost:8081")
 public class FilesController {
 
     @Autowired
