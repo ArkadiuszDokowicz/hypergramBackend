@@ -2,15 +2,24 @@ package com.hypergram.loginapp.service;
 
 import java.io.IOException;
 import java.net.MalformedURLException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.stream.Stream;
 
 import com.hypergram.loginapp.controllers.AuthController;
+import com.hypergram.loginapp.model.User;
 import com.hypergram.loginapp.security.services.UserDetailsImpl;
+import org.bouncycastle.util.encoders.Hex;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 import org.springframework.util.FileSystemUtils;
 import org.springframework.web.multipart.MultipartFile;
@@ -18,7 +27,6 @@ import org.springframework.web.multipart.MultipartFile;
 @Service
 public class FilesStorageServiceImpl implements FilesStorageService {
 
-    UserDetailsImpl userDetails;
     private final Path root = Paths.get("uploads");
 
     @Override
@@ -32,8 +40,16 @@ public class FilesStorageServiceImpl implements FilesStorageService {
 
     @Override
     public void save(MultipartFile file) {
+        String filename;
         try {
-            Files.copy(file.getInputStream(), this.root.resolve(file.getOriginalFilename()));
+            filename = createFilename();
+            filename = filename + ".jpg";
+        } catch (NoSuchAlgorithmException e) {
+            throw new RuntimeException("Could not store the file. Error: " + e.getMessage());
+        }
+        try {
+            setDirectory(getUserPath());
+            Files.copy(file.getInputStream(),this.getUserPath().resolve(filename));
         } catch (Exception e) {
             throw new RuntimeException("Could not store the file. Error: " + e.getMessage());
         }
@@ -63,9 +79,49 @@ public class FilesStorageServiceImpl implements FilesStorageService {
     @Override
     public Stream<Path> loadAll() {
         try {
-            return Files.walk(this.root, 1).filter(path -> !path.equals(this.root)).map(this.root::relativize);
+            Path userPath = getUserPath();
+            return Files.walk(userPath, 1).filter(path -> !path.equals(userPath)).map(userPath::relativize);
         } catch (IOException e) {
             throw new RuntimeException("Could not load the files!");
         }
+    }
+
+    private boolean isDirectorySet(Path path){
+        return Files.exists(path);
+    }
+
+    private void setDirectory(Path path){
+        if(!isDirectorySet(path)){
+            try {
+                Files.createDirectory(path);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    private Path getUserPath(){
+        UserDetails userDetails = (UserDetails)SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        String username = userDetails.getUsername();
+        Path userPath = Paths.get(root.toString()+"/"+username);
+
+        return userPath;
+    }
+    private String createFilename() throws NoSuchAlgorithmException {
+        UserDetails userDetails = (UserDetails)SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        String username = userDetails.getUsername();
+        SimpleDateFormat formatter = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss");
+        Date date = new Date();
+        StringBuilder filename = new StringBuilder();
+        filename.append(username);
+        filename.append(date.toString());
+        return createHashForFile(filename.toString());
+    }
+    public String createHashForFile(String originalString) throws NoSuchAlgorithmException {
+        MessageDigest digest = MessageDigest.getInstance("SHA-256");
+        byte[] hash = digest.digest(
+                originalString.getBytes(StandardCharsets.UTF_8));
+        String sha256hex = new String(Hex.encode(hash));
+        return sha256hex;
     }
 }
