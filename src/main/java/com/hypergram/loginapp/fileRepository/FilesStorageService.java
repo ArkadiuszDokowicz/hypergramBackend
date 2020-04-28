@@ -1,4 +1,4 @@
-package com.hypergram.loginapp.service;
+package com.hypergram.loginapp.fileRepository;
 
 import java.nio.file.Path;
 import java.util.stream.Stream;
@@ -16,4 +16,8 @@ public interface FilesStorageService {
     public void deleteAll();
 
     public Stream<Path> loadAll();
+
+    public boolean isDirectorySet(Path path);
+
+    public boolean isImageSaved(String imageId);
 }

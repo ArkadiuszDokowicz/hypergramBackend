@@ -1,4 +1,4 @@
-package com.hypergram.loginapp.service;
+package com.hypergram.loginapp.fileRepository;
 
 import java.io.IOException;
 import java.net.MalformedURLException;
@@ -10,12 +10,15 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.Optional;
 import java.util.stream.Stream;
 
-import com.hypergram.loginapp.controllers.AuthController;
+import com.hypergram.loginapp.model.ImageDB;
 import com.hypergram.loginapp.model.User;
-import com.hypergram.loginapp.security.services.UserDetailsImpl;
+import com.hypergram.loginapp.repository.ImageRepository;
+import com.hypergram.loginapp.repository.UserRepository;
 import org.bouncycastle.util.encoders.Hex;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -27,8 +30,13 @@ import org.springframework.web.multipart.MultipartFile;
 @Service
 public class FilesStorageServiceImpl implements FilesStorageService {
 
-    private final Path root = Paths.get("uploads");
+    @Autowired
+    ImageRepository imageRepository;
+    @Autowired
+    UserRepository userRepository;
 
+    private final Path root = Paths.get("uploads");
+    private final String fileExtension = ".jpg";
     @Override
     public void init() {
         try {
@@ -43,13 +51,17 @@ public class FilesStorageServiceImpl implements FilesStorageService {
         String filename;
         try {
             filename = createFilename();
-            filename = filename + ".jpg";
+            filename = filename + fileExtension;
         } catch (NoSuchAlgorithmException e) {
             throw new RuntimeException("Could not store the file. Error: " + e.getMessage());
         }
         try {
             setDirectory(getUserPath());
             Files.copy(file.getInputStream(),this.getUserPath().resolve(filename));
+            UserDetails userDetails = (UserDetails)SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+            String username = userDetails.getUsername();
+            Optional<User> user = userRepository.findByUsername(username);
+            imageRepository.save(new ImageDB(getFileNameWithoutExtension(filename),user.get()));
         } catch (Exception e) {
             throw new RuntimeException("Could not store the file. Error: " + e.getMessage());
         }
@@ -58,7 +70,7 @@ public class FilesStorageServiceImpl implements FilesStorageService {
     @Override
     public Resource load(String filename) {
         try {
-            Path file = root.resolve(filename);
+            Path file = getUserPath().resolve(filename);
             Resource resource = new UrlResource(file.toUri());
 
             if (resource.exists() || resource.isReadable()) {
@@ -86,10 +98,20 @@ public class FilesStorageServiceImpl implements FilesStorageService {
         }
     }
 
-    private boolean isDirectorySet(Path path){
+    public boolean isDirectorySet(Path path){
         return Files.exists(path);
     }
 
+    @Override
+    public boolean isImageSaved(String imageId) {
+        Path imagePath= Paths.get(createImagePath(imageId)+fileExtension);
+        return isDirectorySet(imagePath);
+    }
+
+    private Path createImagePath(String imageId){
+        Path imagePath= Paths.get(this.getUserPath()+"/"+imageId);
+        return imagePath;
+    }
     private void setDirectory(Path path){
         if(!isDirectorySet(path)){
             try {
@@ -100,6 +122,10 @@ public class FilesStorageServiceImpl implements FilesStorageService {
         }
     }
 
+    private String getFileNameWithoutExtension(String filename){
+        String filenameWithoutExtension = filename.replace(fileExtension,"");
+        return filenameWithoutExtension;
+    }
     private Path getUserPath(){
         UserDetails userDetails = (UserDetails)SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         String username = userDetails.getUsername();
