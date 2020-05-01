@@ -1,8 +1,9 @@
-package com.hypergram.loginapp.controllers;
+package com.hypergram.loginapp.controllers.authEntry;
 
 import java.util.List;
 import java.util.stream.Collectors;
 
+import com.hypergram.loginapp.controllers.publicEntry.FilesControllerPublic;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
@@ -20,7 +21,7 @@ import com.hypergram.loginapp.fileRepository.FilesStorageService;
 @Controller
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequestMapping("/api/files")
-public class FilesController {
+public class FilesControllerAuth {
 
     @Autowired
     FilesStorageService storageService;
@@ -46,7 +47,7 @@ public class FilesController {
         List<FileInfo> fileInfos = storageService.loadAll().map(path -> {
             String filename = path.getFileName().toString();
             String url = MvcUriComponentsBuilder
-                    .fromMethodName(FilesController.class, "getFile", path.getFileName().toString()).build().toString();
+                    .fromMethodName(FilesControllerAuth.class, "getFile", path.getFileName().toString()).build().toString();
 
             return new FileInfo(filename, url);
         }).collect(Collectors.toList());

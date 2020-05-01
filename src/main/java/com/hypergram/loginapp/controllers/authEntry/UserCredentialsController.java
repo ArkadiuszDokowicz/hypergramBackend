@@ -1,4 +1,4 @@
-package com.hypergram.loginapp.controllers;
+package com.hypergram.loginapp.controllers.authEntry;
 
 import com.hypergram.loginapp.model.RemindingQuestion;
 import com.hypergram.loginapp.model.User;

@@ -1,4 +1,4 @@
-package com.hypergram.loginapp.controllers;
+package com.hypergram.loginapp.controllers.authEntry;
 import com.hypergram.loginapp.payload.request.TestRequest;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;

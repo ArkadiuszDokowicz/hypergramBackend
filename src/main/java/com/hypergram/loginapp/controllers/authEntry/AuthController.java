@@ -1,4 +1,4 @@
-package com.hypergram.loginapp.controllers;
+package com.hypergram.loginapp.controllers.authEntry;
 
 import java.security.NoSuchAlgorithmException;
 import java.util.HashSet;
