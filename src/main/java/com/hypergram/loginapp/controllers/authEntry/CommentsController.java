@@ -30,7 +30,7 @@ public class CommentsController {
         return  commentService.removeComment(commentRequest);
     }
     @PreAuthorize("#getCommentRequest.username == authentication.principal.username")
-    @GetMapping("/getComments")
+    @PostMapping("/getComments")
     public ResponseEntity<?> getCommentList(@Valid @RequestBody GetCommentRequest getCommentRequest){
         return commentService.getComments(getCommentRequest);
     }
