@@ -56,8 +56,8 @@ public class FilesStorageServiceImpl implements FilesStorageService {
             throw new RuntimeException("Could not store the file. Error: " + e.getMessage());
         }
         try {
-            setDirectory(getUserPath());
-            Files.copy(file.getInputStream(),this.getUserPath().resolve(filename));
+            setDirectory(getUserPathByToken());
+            Files.copy(file.getInputStream(),this.getUserPathByToken().resolve(filename));
             UserDetails userDetails = (UserDetails)SecurityContextHolder.getContext().getAuthentication().getPrincipal();
             String username = userDetails.getUsername();
             Optional<User> user = userRepository.findByUsername(username);
@@ -70,7 +70,26 @@ public class FilesStorageServiceImpl implements FilesStorageService {
     @Override
     public Resource load(String filename) {
         try {
-            Path file = getUserPath().resolve(filename);
+            Path file = getUserPathByToken().resolve(filename);
+            Resource resource = new UrlResource(file.toUri());
+
+            if (resource.exists() || resource.isReadable()) {
+                return resource;
+            } else {
+                throw new RuntimeException("Could not read the file!");
+            }
+        } catch (MalformedURLException e) {
+            throw new RuntimeException("Error: " + e.getMessage());
+        }
+    }
+
+    @Override
+    public Resource loadPublic(String filename) {
+        try {
+
+            Optional<ImageDB> imageDB = imageRepository.findById(filename.replace(".jpg","" +
+                    ""));
+            Path file =getUserPathByUserName(imageDB.get().getUser().getUsername()).resolve(filename);
             Resource resource = new UrlResource(file.toUri());
 
             if (resource.exists() || resource.isReadable()) {
@@ -91,8 +110,16 @@ public class FilesStorageServiceImpl implements FilesStorageService {
     @Override
     public Stream<Path> loadAll() {
         try {
-            Path userPath = getUserPath();
+            Path userPath = getUserPathByToken();
             return Files.walk(userPath, 1).filter(path -> !path.equals(userPath)).map(userPath::relativize);
+        } catch (IOException e) {
+            throw new RuntimeException("Could not load the files!");
+        }
+    }
+    @Override
+    public Stream<Path> loadAllPublic() {
+        try {
+            return Files.walk(root, 2).filter(path -> !path.equals(root)&& path.getFileName().toString().endsWith(".jpg")).map(root::relativize);
         } catch (IOException e) {
             throw new RuntimeException("Could not load the files!");
         }
@@ -108,8 +135,16 @@ public class FilesStorageServiceImpl implements FilesStorageService {
         return isDirectorySet(imagePath);
     }
 
+    @Override
+    public String getFileOwner(String imageId) {
+        Optional<ImageDB> imageDB = imageRepository.findById(imageId.replace(".jpg",""));
+        User user = imageDB.get().getUser();
+        String username = user.getUsername();
+        return username;
+    }
+
     private Path createImagePath(String imageId){
-        Path imagePath= Paths.get(this.getUserPath()+"/"+imageId);
+        Path imagePath= Paths.get(this.getUserPathByToken()+"/"+imageId);
         return imagePath;
     }
     private void setDirectory(Path path){
@@ -126,11 +161,15 @@ public class FilesStorageServiceImpl implements FilesStorageService {
         String filenameWithoutExtension = filename.replace(fileExtension,"");
         return filenameWithoutExtension;
     }
-    private Path getUserPath(){
+    private Path getUserPathByToken(){
         UserDetails userDetails = (UserDetails)SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         String username = userDetails.getUsername();
         Path userPath = Paths.get(root.toString()+"/"+username);
 
+        return userPath;
+    }
+    private Path getUserPathByUserName(String username){
+        Path userPath = Paths.get(root.toString()+"/"+username);
         return userPath;
     }
     private String createFilename() throws NoSuchAlgorithmException {

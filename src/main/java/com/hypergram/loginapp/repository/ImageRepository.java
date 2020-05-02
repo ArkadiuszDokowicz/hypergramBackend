@@ -1,11 +1,12 @@
 package com.hypergram.loginapp.repository;
 
 import com.hypergram.loginapp.model.ImageDB;
+import com.hypergram.loginapp.model.User;
 import org.springframework.data.mongodb.repository.MongoRepository;
 
 import java.util.Optional;
 
 public interface ImageRepository extends MongoRepository<ImageDB,String> {
-    Optional<ImageDB> findById();
-    Optional<ImageDB> findByUser();
+    Optional<ImageDB> findById(String id);
+    Optional<ImageDB> findByUser(User user);
 }

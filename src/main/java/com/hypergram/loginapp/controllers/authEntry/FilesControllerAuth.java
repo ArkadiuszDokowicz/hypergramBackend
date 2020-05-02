@@ -49,7 +49,7 @@ public class FilesControllerAuth {
             String url = MvcUriComponentsBuilder
                     .fromMethodName(FilesControllerAuth.class, "getFile", path.getFileName().toString()).build().toString();
 
-            return new FileInfo(filename, url);
+            return new FileInfo(filename, url,storageService.getFileOwner(filename));
         }).collect(Collectors.toList());
 
         return ResponseEntity.status(HttpStatus.OK).body(fileInfos);

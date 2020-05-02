@@ -23,12 +23,13 @@ public class FilesControllerPublic {
 
     @GetMapping("/files")
     public ResponseEntity<List<FileInfo>> getListFiles() {
-        List<FileInfo> fileInfos = storageService.loadAll().map(path -> {
+        List<FileInfo> fileInfos = storageService.loadAllPublic().map(path -> {
             String filename = path.getFileName().toString();
+
             String url = MvcUriComponentsBuilder
                     .fromMethodName(FilesControllerPublic.class, "getFile", path.getFileName().toString()).build().toString();
-
-            return new FileInfo(filename, url);
+            String fileUser = storageService.getFileOwner(filename);
+            return new FileInfo(filename, url,fileUser);
         }).collect(Collectors.toList());
 
         return ResponseEntity.status(HttpStatus.OK).body(fileInfos);
@@ -37,7 +38,7 @@ public class FilesControllerPublic {
     @GetMapping("/files/{filename:.+}")
     @ResponseBody
     public ResponseEntity<Resource> getFile(@PathVariable String filename) {
-        Resource file = storageService.load(filename);
+        Resource file = storageService.loadPublic(filename);
         return ResponseEntity.ok()
                 .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + file.getFilename() + "\"").body(file);
     }

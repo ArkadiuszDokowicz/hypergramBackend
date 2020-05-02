@@ -13,11 +13,17 @@ public interface FilesStorageService {
 
     public Resource load(String filename);
 
+    Resource loadPublic(String filename);
+
     public void deleteAll();
 
     public Stream<Path> loadAll();
 
+    public Stream<Path> loadAllPublic();
+
     public boolean isDirectorySet(Path path);
 
     public boolean isImageSaved(String imageId);
+
+    public String getFileOwner(String imageId);
 }
