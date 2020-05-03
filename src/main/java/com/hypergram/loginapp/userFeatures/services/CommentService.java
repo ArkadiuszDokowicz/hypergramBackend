@@ -35,7 +35,7 @@ public class CommentService {
     ImageRepository imageRepository;
 
     public ResponseEntity<?> addComment(NewCommentRequest commentRequest){
-        if(filesStorageService.isImageSaved(commentRequest.getImageId())){
+        if(imageRepository.existsById(commentRequest.getImageId())){
             try{
                 UserDetails userDetails = (UserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
                 Optional<User> user=userRepository.findByUsername(userDetails.getUsername());

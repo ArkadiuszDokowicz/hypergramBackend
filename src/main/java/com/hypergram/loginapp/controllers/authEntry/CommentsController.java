@@ -29,7 +29,6 @@ public class CommentsController {
     public ResponseEntity<?> removeComment(@Valid @RequestBody CommentRequest commentRequest){
         return  commentService.removeComment(commentRequest);
     }
-    @PreAuthorize("#getCommentRequest.username == authentication.principal.username")
     @PostMapping("/getComments")
     public ResponseEntity<?> getCommentList(@Valid @RequestBody GetCommentRequest getCommentRequest){
         return commentService.getComments(getCommentRequest);
