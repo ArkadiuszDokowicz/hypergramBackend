@@ -21,11 +21,14 @@ import org.bouncycastle.util.encoders.Hex;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 import org.springframework.util.FileSystemUtils;
+import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.server.ResponseStatusException;
 
 @Service
 public class FilesStorageServiceImpl implements FilesStorageService {
@@ -87,8 +90,7 @@ public class FilesStorageServiceImpl implements FilesStorageService {
     public Resource loadPublic(String filename) {
         try {
 
-            Optional<ImageDB> imageDB = imageRepository.findById(filename.replace(".jpg","" +
-                    ""));
+            Optional<ImageDB> imageDB = imageRepository.findById(filename.replace(".jpg",""));
             Path file =getUserPathByUserName(imageDB.get().getUser().getUsername()).resolve(filename);
             Resource resource = new UrlResource(file.toUri());
 
@@ -105,6 +107,38 @@ public class FilesStorageServiceImpl implements FilesStorageService {
     @Override
     public void deleteAll() {
         FileSystemUtils.deleteRecursively(root.toFile());
+    }
+
+    @Override
+    public boolean deletePicture(String filename){
+        try {
+            UserDetails userDetails = (UserDetails)SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+            Optional<ImageDB> imageDB = imageRepository.findById(filename.replace(".jpg",""));
+            Path file =getUserPathByUserName(imageDB.get().getUser().getUsername()).resolve(filename);
+            if(userDetails.getUsername().equals(imageDB.get().getUser().getUsername())){
+                    FileSystemUtils.deleteRecursively(file);
+                    imageRepository.delete(imageDB.get());
+                    return true;
+            }else{
+                throw new ResponseStatusException(HttpStatus.UNAUTHORIZED,"This is not your picture");
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+    @Override
+    public boolean deletePictureAsAdminOrMod(String filename){
+        try {
+            Optional<ImageDB> imageDB = imageRepository.findById(filename.replace(".jpg",""));
+            Path file =getUserPathByUserName(imageDB.get().getUser().getUsername()).resolve(filename);
+            FileSystemUtils.deleteRecursively(file);
+            imageRepository.delete(imageDB.get());
+            return true;
+        } catch (IOException e) {
+            e.printStackTrace();
+            return false;
+        }
     }
 
     @Override

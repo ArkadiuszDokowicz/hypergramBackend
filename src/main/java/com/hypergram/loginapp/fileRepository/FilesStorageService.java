@@ -15,6 +15,10 @@ public interface FilesStorageService {
 
     Resource loadPublic(String filename);
 
+    boolean deletePicture(String filename);
+
+    boolean deletePictureAsAdminOrMod(String filename);
+
     public void deleteAll();
 
     public Stream<Path> loadAll();

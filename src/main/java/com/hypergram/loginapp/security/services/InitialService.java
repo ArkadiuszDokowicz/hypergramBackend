@@ -1,22 +1,19 @@
 package com.hypergram.loginapp.security.services;
 
-import com.hypergram.loginapp.LoginappApplication;
 import com.hypergram.loginapp.model.ERole;
 import com.hypergram.loginapp.model.Role;
 import com.hypergram.loginapp.model.User;
 import com.hypergram.loginapp.repository.RoleRepository;
 import com.hypergram.loginapp.repository.UserRepository;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 import java.util.HashSet;
 import java.util.Set;
 @Service
 public class InitialService {
+
     @Autowired
     UserRepository userRepository;
     @Autowired

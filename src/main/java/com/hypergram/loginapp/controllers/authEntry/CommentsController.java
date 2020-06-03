@@ -33,4 +33,10 @@ public class CommentsController {
     public ResponseEntity<?> getCommentList(@Valid @RequestBody GetCommentRequest getCommentRequest){
         return commentService.getComments(getCommentRequest);
     }
+    @PreAuthorize("(hasRole('MODERATOR') or hasRole('ADMIN'))")
+    @PostMapping("/modAdmin/removeComment")
+    public ResponseEntity<?> removeCommentAsAdministrator(@Valid @RequestBody CommentRequest commentRequest){
+        return  commentService.removeCommentAsModOrAdmin(commentRequest);
+    }
+
 }

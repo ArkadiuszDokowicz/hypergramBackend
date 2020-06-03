@@ -22,6 +22,8 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
+import javax.xml.ws.http.HTTPException;
+
 @Service
 public class CommentService {
 
@@ -73,7 +75,16 @@ public class CommentService {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST,"No comment with id:"+commentRequest.getCommentId());
         }
     }
+    public ResponseEntity<?> removeCommentAsModOrAdmin(CommentRequest commentRequest) {
+        Optional<Comment> comment = commentRepository.findById(commentRequest.getCommentId());
+        if (comment.isPresent()) {
+            commentRepository.delete(comment.get());
+            return ResponseEntity.ok("Comment removed");
+        }
+        else{
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,"Comment not exist");
 
+        }    }
     public ResponseEntity<?> getComments(GetCommentRequest commentRequest) {
         try{
             List<Comment> comments =  commentRepository.findAllByimageId(commentRequest.getImageId());

@@ -9,9 +9,11 @@ import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.servlet.mvc.method.annotation.MvcUriComponentsBuilder;
 
 import com.hypergram.loginapp.model.FileInfo;
@@ -62,5 +64,29 @@ public class FilesControllerAuth {
         Resource file = storageService.load(filename);
         return ResponseEntity.ok()
                 .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + file.getFilename() + "\"").body(file);
+    }
+
+    @GetMapping("/filesRemove/{filename:.+}")
+    @ResponseBody
+    public ResponseEntity<?> removeFile(@PathVariable String filename){
+        boolean success = storageService.deletePicture(filename);
+        if(success){
+            return ResponseEntity.ok("File removed");
+        }
+        else{
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR,"Server error");
+        }
+    }
+    @PreAuthorize("(hasRole('MODERATOR') or hasRole('ADMIN'))")
+    @GetMapping("/modAdmin/filesRemove/{filename:.+}")
+    @ResponseBody
+    public ResponseEntity<?> removeFileAsAdmin(@PathVariable String filename){
+        boolean success = storageService.deletePictureAsAdminOrMod(filename);
+        if(success){
+            return ResponseEntity.ok("File removed");
+        }
+        else{
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR,"Picture doesn't exist");
+        }
     }
 }
