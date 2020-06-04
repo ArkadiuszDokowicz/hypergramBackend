@@ -2,14 +2,12 @@ package com.hypergram.loginapp.controllers.authEntry;
 
 import com.hypergram.loginapp.model.RemindingQuestion;
 import com.hypergram.loginapp.model.User;
-import com.hypergram.loginapp.payload.request.ChangePasswdRequest;
-import com.hypergram.loginapp.payload.request.PasswordQuestionAddRequest;
-import com.hypergram.loginapp.payload.request.PasswordQuestionGetRequest;
-import com.hypergram.loginapp.payload.request.RemoveQuestionRequest;
+import com.hypergram.loginapp.payload.request.*;
 import com.hypergram.loginapp.payload.response.MessageResponse;
 import com.hypergram.loginapp.payload.response.RemindingQuestionsListResponse;
 import com.hypergram.loginapp.repository.RemindingQuestionRepository;
 import com.hypergram.loginapp.repository.UserRepository;
+import com.hypergram.loginapp.security.jwt.JwtTokenUtil;
 import com.hypergram.loginapp.security.services.RemindingPasswordService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -37,6 +35,9 @@ public class UserCredentialsController {
     private static final Logger logger = LoggerFactory.getLogger(UserCredentialsController.class);
     @Autowired
     UserRepository userRepository;
+
+    @Autowired
+    JwtTokenUtil jwtBuilder;
 
     @Autowired
     PasswordEncoder encoder;
@@ -106,5 +107,20 @@ public class UserCredentialsController {
         Optional<RemindingQuestion> question = remindingQuestionRepository.findById(rqRequest.getQuestionId());
         remindingQuestionRepository.delete(question.get());
         return ResponseEntity.ok(new MessageResponse("QuestionRemoved"));
+    }
+
+    @PostMapping("/removeAccount")
+    @PreAuthorize("#loginRequest.username == authentication.principal.username")
+    public ResponseEntity<?> removeAccount(@Valid @RequestBody LoginRequest loginRequest){
+        Authentication authentication = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(loginRequest.getUsername(), loginRequest.getPassword()));
+        try {
+            Optional<User> user = userRepository.findByUsername(loginRequest.getUsername());
+            userRepository.delete(user.get());
+            String jwt = jwtBuilder.generateJwtToken(authentication);
+            return ResponseEntity.ok("ok");
+        }catch (Exception e){
+            e.printStackTrace();
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND);
+        }
     }
 }
