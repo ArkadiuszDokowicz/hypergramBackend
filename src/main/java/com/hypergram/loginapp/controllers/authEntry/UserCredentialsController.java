@@ -1,10 +1,13 @@
 package com.hypergram.loginapp.controllers.authEntry;
 
+import com.hypergram.loginapp.fileRepository.FilesStorageService;
+import com.hypergram.loginapp.model.ImageDB;
 import com.hypergram.loginapp.model.RemindingQuestion;
 import com.hypergram.loginapp.model.User;
 import com.hypergram.loginapp.payload.request.*;
 import com.hypergram.loginapp.payload.response.MessageResponse;
 import com.hypergram.loginapp.payload.response.RemindingQuestionsListResponse;
+import com.hypergram.loginapp.repository.ImageRepository;
 import com.hypergram.loginapp.repository.RemindingQuestionRepository;
 import com.hypergram.loginapp.repository.UserRepository;
 import com.hypergram.loginapp.security.jwt.JwtTokenUtil;
@@ -50,6 +53,12 @@ public class UserCredentialsController {
 
     @Autowired
     RemindingPasswordService remindingPasswordService;
+
+    @Autowired
+    ImageRepository imageRepository;
+
+    @Autowired
+    FilesStorageService storageService;
 
     @PreAuthorize("#cpRequest.username == authentication.principal.username")
     @PostMapping("/changePassword")
@@ -115,6 +124,13 @@ public class UserCredentialsController {
         Authentication authentication = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(loginRequest.getUsername(), loginRequest.getPassword()));
         try {
             Optional<User> user = userRepository.findByUsername(loginRequest.getUsername());
+            Optional<List<ImageDB>> imagesToRemove= imageRepository.findAllByUser(user.get());
+            if(imagesToRemove.isPresent()){
+                for(ImageDB image : imagesToRemove.get()){
+                    String imagePath = image.getId()+".jpg";
+                    storageService.deletePicture(imagePath);
+                }
+            }
             userRepository.delete(user.get());
             String jwt = jwtBuilder.generateJwtToken(authentication);
             return ResponseEntity.ok("ok");
