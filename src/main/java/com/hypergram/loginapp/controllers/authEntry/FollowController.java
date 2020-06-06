@@ -18,4 +18,8 @@ public class FollowController {
         return followService.followUser(username);
     }
 
+    @GetMapping("/getFollowRequests")
+    public ResponseEntity<?> getFollowRequests(){
+        return followService.getFollowRequests();
+    }
 }

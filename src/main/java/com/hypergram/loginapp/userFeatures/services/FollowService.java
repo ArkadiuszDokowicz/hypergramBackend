@@ -12,6 +12,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -28,25 +29,53 @@ public class FollowService {
         Optional<User> user = userRepository.findByUsername(username);
         UserDetails userDetails = (UserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         Optional<User> follower =userRepository.findByUsername(userDetails.getUsername());
-        if(follower.isPresent()){
+        if(follower.isPresent() && user.isPresent()){
             if(!follower.get().isFollowingUser(username)){
-                if(user.isPresent()){
                     if(user.get().isPrivateAccount()){
-                        FollowRequest followRequest = new FollowRequest(user.get(),userDetails.getUsername());
-                        requestsRepository.save(followRequest);
-                        return  ResponseEntity.ok("Your follow request has been send");
+                        if(!ifRequestHasBeenSend(username)){
+                            FollowRequest followRequest = new FollowRequest(user.get(),userDetails.getUsername());
+                            requestsRepository.save(followRequest);
+                            return  ResponseEntity.ok("Your follow request has been send");
+                            }
+                        else{
+                            return ResponseEntity.ok("You have previously sent follow request");
+                        }
                     }else{
                         follower.get().addFollow(username);
                         userRepository.save(follower.get());
                         return  ResponseEntity.ok("Follow added");
                     }
-                }else{
-                    throw new ResponseStatusException(HttpStatus.BAD_REQUEST," user not found ");
-                }
             }else{
                 throw new ResponseStatusException(HttpStatus.BAD_REQUEST,"You are following this user");
             }
         }
         throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+    public ResponseEntity<?> getFollowRequests() {
+        UserDetails userDetails = (UserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        Optional<User> user =userRepository.findByUsername(userDetails.getUsername());
+        if(user.isPresent()){
+            Optional<List<FollowRequest>> requests =  requestsRepository.findAllByUser(user.get());
+            if(requests.isPresent()){
+                return ResponseEntity.ok().body(requests);
+            }
+            else{
+                return ResponseEntity.ok("No follow request");
+            }
+        }else{
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+    private boolean ifRequestHasBeenSend(String username){
+        Optional<User> user = userRepository.findByUsername(username);
+        UserDetails userDetails = (UserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        Optional<User> follower =userRepository.findByUsername(userDetails.getUsername());
+        if(user.isPresent() && follower.isPresent()) {
+            Optional<List<FollowRequest>> currentRequests = requestsRepository.findAllByUser(user.get());
+            return currentRequests.map(followRequests -> followRequests.stream().anyMatch(followRequest -> followRequest.getAsker().equals(follower.get().getUsername()))).orElse(false);
+        }else{
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
 }

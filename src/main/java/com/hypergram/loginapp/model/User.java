@@ -106,4 +106,11 @@ public class User {
     public boolean isFollowingUser(String username){
         return follows.contains(username);
     }
+
+    public List<String> getFollows() {
+        if(this.follows==null) {
+            this.follows = new ArrayList<>();
+        }
+        return follows;
+    }
 }

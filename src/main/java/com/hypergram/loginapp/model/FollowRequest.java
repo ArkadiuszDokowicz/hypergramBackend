@@ -1,6 +1,7 @@
 package com.hypergram.loginapp.model;
 
 import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.mapping.DBRef;
 import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.format.annotation.DateTimeFormat;
 
@@ -12,7 +13,7 @@ import java.util.Date;
 public class FollowRequest {
     @Id
     private String id;
-    @NotEmpty
+    @DBRef
     private User user;
     @NotEmpty
     private String asker;
