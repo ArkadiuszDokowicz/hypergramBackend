@@ -142,7 +142,7 @@ public class UserCredentialsController {
         }
     }
 
-    @GetMapping("/setPrivate")
+    @PostMapping("/setPrivate")
     public ResponseEntity<?> setPrivate(){
         UserDetails userDetails = (UserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         String username = userDetails.getUsername();
@@ -155,7 +155,7 @@ public class UserCredentialsController {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
-    @GetMapping("/setPublic")
+    @PostMapping("/setPublic")
     public ResponseEntity<?> setPublic(){
         UserDetails userDetails = (UserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         String username = userDetails.getUsername();

@@ -1,10 +1,13 @@
 package com.hypergram.loginapp.controllers.authEntry;
 
+import com.hypergram.loginapp.fileRepository.FilesStorageService;
 import com.hypergram.loginapp.model.ERole;
+import com.hypergram.loginapp.model.ImageDB;
 import com.hypergram.loginapp.model.Role;
 import com.hypergram.loginapp.model.User;
 import com.hypergram.loginapp.payload.request.SetModeratorRequest;
 import com.hypergram.loginapp.payload.response.MessageResponse;
+import com.hypergram.loginapp.repository.ImageRepository;
 import com.hypergram.loginapp.repository.RoleRepository;
 import com.hypergram.loginapp.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,6 +24,7 @@ import org.springframework.web.server.ResponseStatusException;
 
 import javax.validation.Valid;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
@@ -36,6 +40,12 @@ public class AdminActionController {
 
     @Autowired
     UserRepository userRepository;
+
+    @Autowired
+    ImageRepository imageRepository;
+
+    @Autowired
+    FilesStorageService storageService;
 
     @PreAuthorize("hasRole('ADMIN')")
     @PostMapping("/setModeratorRole")
@@ -66,6 +76,25 @@ public class AdminActionController {
         }else{
             throw new ResponseStatusException(
                     HttpStatus.BAD_REQUEST, "Password are not the same");
+        }
+    }
+    @PostMapping("/removeAccount")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<?> removeAccount(@RequestParam (name = "username")String username){
+        try {
+            Optional<User> user = userRepository.findByUsername(username);
+            Optional<List<ImageDB>> imagesToRemove= imageRepository.findAllByUser(user.get());
+            if(imagesToRemove.isPresent()){
+                for(ImageDB image : imagesToRemove.get()){
+                    String imagePath = image.getId()+".jpg";
+                    storageService.deletePicture(imagePath);
+                }
+            }
+            userRepository.delete(user.get());
+            return ResponseEntity.ok("User removed");
+        }catch (Exception e){
+            e.printStackTrace();
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND);
         }
     }
 }
