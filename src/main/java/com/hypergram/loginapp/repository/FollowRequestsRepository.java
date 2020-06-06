@@ -9,5 +9,5 @@ import java.util.Optional;
 public interface FollowRequestsRepository extends MongoRepository<FollowRequest,String> {
 
     Optional<List<FollowRequest>> findAllByUser(User user);
-
+    Optional<FollowRequest> findById(String id);
 }

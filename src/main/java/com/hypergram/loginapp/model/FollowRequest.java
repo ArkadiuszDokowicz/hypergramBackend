@@ -28,6 +28,16 @@ public class FollowRequest {
         this.date=date;
     }
 
+
+
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
+    }
+
     public User getUser() {
         return user;
     }

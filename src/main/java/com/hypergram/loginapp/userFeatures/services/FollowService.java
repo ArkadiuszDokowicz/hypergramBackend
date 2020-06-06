@@ -2,6 +2,7 @@ package com.hypergram.loginapp.userFeatures.services;
 
 import com.hypergram.loginapp.model.FollowRequest;
 import com.hypergram.loginapp.model.User;
+import com.hypergram.loginapp.payload.response.FollowRequestResponse;
 import com.hypergram.loginapp.repository.FollowRequestsRepository;
 import com.hypergram.loginapp.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,6 +15,7 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class FollowService {
@@ -58,7 +60,10 @@ public class FollowService {
         if(user.isPresent()){
             Optional<List<FollowRequest>> requests =  requestsRepository.findAllByUser(user.get());
             if(requests.isPresent()){
-                return ResponseEntity.ok().body(requests);
+                List<FollowRequestResponse> response = requests.get().stream().map(followRequest ->
+                                new FollowRequestResponse(followRequest.getId(),followRequest.getAsker(),followRequest.getDate())
+                        ).collect(Collectors.toList());
+                return ResponseEntity.ok().body(response);
             }
             else{
                 return ResponseEntity.ok("No follow request");
