@@ -64,7 +64,7 @@ public class FilesControllerAuth {
                 .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + file.getFilename() + "\"").body(file);
     }
 
-    @GetMapping("/filesRemove/{filename:.+}")
+    @PostMapping("/filesRemove/{filename:.+}")
     @ResponseBody
     public ResponseEntity<?> removeFile(@PathVariable String filename){
         boolean success = storageService.deletePicture(filename);
