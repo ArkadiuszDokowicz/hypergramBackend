@@ -65,7 +65,6 @@ public class AuthController {
         if(isNotBanned(loginRequest.getUsername())){
         Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(loginRequest.getUsername(), loginRequest.getPassword()));
-
         SecurityContextHolder.getContext().setAuthentication(authentication);
         String jwt = jwtBuilder.generateJwtToken(authentication);
 
@@ -80,7 +79,7 @@ public class AuthController {
                 userDetails.getEmail(),
                 roles));
         }else{
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN,"You are locked");
+            throw new ResponseStatusException(HttpStatus.LOCKED,"You are locked");
         }
     }
 
@@ -170,12 +169,12 @@ public class AuthController {
         }
     }
     private boolean isNotBanned(String username){
-                Optional<User> user = userRepository.findByUsername(username);
-                if(user.isPresent()){
-                    Optional<User> bannedUser = banRepository.findByUser(user.get());
-                    return !bannedUser.isPresent();
-                }else{
-                    return false;
-                }
+        Optional<User> user = userRepository.findByUsername(username);
+        if(user.isPresent()){
+            Optional<User> bannedUser = banRepository.findByUser(user.get());
+            return !bannedUser.isPresent();
+        }else{
+            return false;
+        }
     }
 }
