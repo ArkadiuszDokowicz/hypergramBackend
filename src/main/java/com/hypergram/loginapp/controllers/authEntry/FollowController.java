@@ -22,4 +22,12 @@ public class FollowController {
     public ResponseEntity<?> getFollowRequests(){
         return followService.getFollowRequests();
     }
+    @PostMapping("/acceptRequest")
+    public ResponseEntity<?> acceptFollowRequest(@RequestParam(name = "id")String id){
+        return followService.acceptRequest(id);
+    }
+    @PostMapping("/discardRequest")
+    public ResponseEntity<?> discardRequest(@RequestParam(name = "id")String id){
+        return followService.discardRequest(id);
+    }
 }

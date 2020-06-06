@@ -27,28 +27,27 @@ public class FollowService {
     @Autowired
     FollowRequestsRepository requestsRepository;
 
-    public ResponseEntity<?> followUser(String username){
+    public ResponseEntity<?> followUser(String username) {
         Optional<User> user = userRepository.findByUsername(username);
         UserDetails userDetails = (UserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        Optional<User> follower =userRepository.findByUsername(userDetails.getUsername());
-        if(follower.isPresent() && user.isPresent()){
-            if(!follower.get().isFollowingUser(username)){
-                    if(user.get().isPrivateAccount()){
-                        if(!ifRequestHasBeenSend(username)){
-                            FollowRequest followRequest = new FollowRequest(user.get(),userDetails.getUsername());
-                            requestsRepository.save(followRequest);
-                            return  ResponseEntity.ok("Your follow request has been send");
-                            }
-                        else{
-                            return ResponseEntity.ok("You have previously sent follow request");
-                        }
-                    }else{
-                        follower.get().addFollow(username);
-                        userRepository.save(follower.get());
-                        return  ResponseEntity.ok("Follow added");
+        Optional<User> follower = userRepository.findByUsername(userDetails.getUsername());
+        if (follower.isPresent() && user.isPresent()) {
+            if (!follower.get().isFollowingUser(username)) {
+                if (user.get().isPrivateAccount()) {
+                    if (!ifRequestHasBeenSend(username)) {
+                        FollowRequest followRequest = new FollowRequest(user.get(), userDetails.getUsername());
+                        requestsRepository.save(followRequest);
+                        return ResponseEntity.ok("Your follow request has been send");
+                    } else {
+                        return ResponseEntity.ok("You have previously sent follow request");
                     }
-            }else{
-                throw new ResponseStatusException(HttpStatus.BAD_REQUEST,"You are following this user");
+                } else {
+                    follower.get().addFollow(username);
+                    userRepository.save(follower.get());
+                    return ResponseEntity.ok("Follow added");
+                }
+            } else {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "You are following this user");
             }
         }
         throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR);
@@ -56,31 +55,63 @@ public class FollowService {
 
     public ResponseEntity<?> getFollowRequests() {
         UserDetails userDetails = (UserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        Optional<User> user =userRepository.findByUsername(userDetails.getUsername());
-        if(user.isPresent()){
-            Optional<List<FollowRequest>> requests =  requestsRepository.findAllByUser(user.get());
-            if(requests.isPresent()){
+        Optional<User> user = userRepository.findByUsername(userDetails.getUsername());
+        if (user.isPresent()) {
+            Optional<List<FollowRequest>> requests = requestsRepository.findAllByUser(user.get());
+            if (requests.isPresent()) {
                 List<FollowRequestResponse> response = requests.get().stream().map(followRequest ->
-                                new FollowRequestResponse(followRequest.getId(),followRequest.getAsker(),followRequest.getDate())
-                        ).collect(Collectors.toList());
+                        new FollowRequestResponse(followRequest.getId(), followRequest.getAsker(), followRequest.getDate())
+                ).collect(Collectors.toList());
                 return ResponseEntity.ok().body(response);
-            }
-            else{
+            } else {
                 return ResponseEntity.ok("No follow request");
             }
-        }else{
+        } else {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
-    private boolean ifRequestHasBeenSend(String username){
+
+    private boolean ifRequestHasBeenSend(String username) {
         Optional<User> user = userRepository.findByUsername(username);
         UserDetails userDetails = (UserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        Optional<User> follower =userRepository.findByUsername(userDetails.getUsername());
-        if(user.isPresent() && follower.isPresent()) {
+        Optional<User> follower = userRepository.findByUsername(userDetails.getUsername());
+        if (user.isPresent() && follower.isPresent()) {
             Optional<List<FollowRequest>> currentRequests = requestsRepository.findAllByUser(user.get());
             return currentRequests.map(followRequests -> followRequests.stream().anyMatch(followRequest -> followRequest.getAsker().equals(follower.get().getUsername()))).orElse(false);
-        }else{
+        } else {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
+
+    public ResponseEntity<?> acceptRequest(String id) {
+        Optional<FollowRequest> followRequest = requestsRepository.findById(id);
+        if (followRequest.isPresent()) {
+            String asker = followRequest.get().getAsker();
+            String futureFollow = followRequest.get().getUser().getUsername();
+            Optional<User> userAsker = userRepository.findByUsername(asker);
+            if (userAsker.isPresent()) {
+                userAsker.get().addFollow(futureFollow);
+                userRepository.save(userAsker.get());
+                requestsRepository.delete(followRequest.get());
+                return ResponseEntity.ok("accepted");
+            } else {
+                throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR);
+            }
+
+        } else {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Wrong id");
+        }
+    }
+
+    public ResponseEntity<?> discardRequest(String id) {
+        Optional<FollowRequest> followRequest = requestsRepository.findById(id);
+        if (followRequest.isPresent()) {
+            requestsRepository.delete(followRequest.get());
+            return ResponseEntity.ok("rejected");
+        } else {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Wrong id");
+        }
+    }
+
+
 }

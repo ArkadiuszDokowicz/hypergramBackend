@@ -229,4 +229,20 @@ public class FilesStorageServiceImpl implements FilesStorageService {
         Optional<User> user = userRepository.findByUsername(fileOwnerName);
         return user.filter(value -> !value.isPrivateAccount()).isPresent();
     }
+    public boolean isFileUserFollowedOrPublic(String fileOwnerName){
+        Optional<User> fileOwner = userRepository.findByUsername(fileOwnerName);
+        boolean isPublic =  fileOwner.filter(value -> !value.isPrivateAccount()).isPresent();
+        UserDetails userDetails = (UserDetails)SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        String username = userDetails.getUsername();
+        Optional<User> user = userRepository.findByUsername(username);
+        boolean hasFollow = false;
+        if(user.isPresent()){
+            hasFollow = user.get().isFollowingUser(fileOwnerName);
+        }
+        boolean isFileOwner = false;
+        if(user.isPresent() && fileOwner.isPresent()){
+            isFileOwner=user.get().getUsername().equals(fileOwnerName);
+        }
+        return hasFollow || isPublic || isFileOwner;
+    }
 }

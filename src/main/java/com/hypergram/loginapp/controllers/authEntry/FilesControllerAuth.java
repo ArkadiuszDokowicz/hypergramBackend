@@ -1,9 +1,8 @@
 package com.hypergram.loginapp.controllers.authEntry;
 
-import java.util.List;
-import java.util.stream.Collectors;
-
-import com.hypergram.loginapp.controllers.publicEntry.FilesControllerPublic;
+import com.hypergram.loginapp.fileRepository.FilesStorageService;
+import com.hypergram.loginapp.model.FileInfo;
+import com.hypergram.loginapp.model.ResponseMessage;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
@@ -16,9 +15,8 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.servlet.mvc.method.annotation.MvcUriComponentsBuilder;
 
-import com.hypergram.loginapp.model.FileInfo;
-import com.hypergram.loginapp.model.ResponseMessage;
-import com.hypergram.loginapp.fileRepository.FilesStorageService;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Controller
 @CrossOrigin(origins = "*", maxAge = 3600)
@@ -52,7 +50,7 @@ public class FilesControllerAuth {
                     .fromMethodName(FilesControllerAuth.class, "getFile", path.getFileName().toString()).build().toString();
 
             return new FileInfo(filename, url,storageService.getFileOwner(filename));
-        }).collect(Collectors.toList());
+        }).filter(f -> storageService.isFileUserFollowedOrPublic(f.getFileOwner())).collect(Collectors.toList());
 
         return ResponseEntity.status(HttpStatus.OK).body(fileInfos);
     }

@@ -32,4 +32,6 @@ public interface FilesStorageService {
     public boolean isImageSaved(String imageId);
 
     public String getFileOwner(String imageId);
+
+    public boolean isFileUserFollowedOrPublic(String fileOwnerName);
 }
