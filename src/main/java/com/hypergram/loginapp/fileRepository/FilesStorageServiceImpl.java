@@ -146,6 +146,7 @@ public class FilesStorageServiceImpl implements FilesStorageService {
             Path userPath = getUserPathByToken();
             return Files.walk(userPath, 1).filter(path -> !path.equals(userPath)).map(userPath::relativize);
         } catch (IOException e) {
+            e.printStackTrace();
             throw new RuntimeException("Could not load the files!");
         }
     }
@@ -221,5 +222,11 @@ public class FilesStorageServiceImpl implements FilesStorageService {
                 originalString.getBytes(StandardCharsets.UTF_8));
         String sha256hex = new String(Hex.encode(hash));
         return sha256hex;
+    }
+
+    @Override
+    public boolean isFilePublic(String fileOwnerName){
+        Optional<User> user = userRepository.findByUsername(fileOwnerName);
+        return user.filter(value -> !value.isPrivateAccount()).isPresent();
     }
 }
