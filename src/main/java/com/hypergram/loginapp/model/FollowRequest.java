@@ -8,45 +8,46 @@ import javax.validation.constraints.NotEmpty;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
-@Document(collection = "comments")
-public class Comment {
+@Document( collection = "followRequests")
+public class FollowRequest {
     @Id
     private String id;
     @NotEmpty
-    private String imageId;
+    private User user;
     @NotEmpty
-    private String comment;
-    @NotEmpty
-    private String username;
+    private String asker;
     @DateTimeFormat
     private Date date;
 
-    public Comment(String imageId, String comment, String username) {
-        this.imageId=imageId;
-        this.comment = comment;
-        this.username = username;
+    public FollowRequest(@NotEmpty User user, @NotEmpty String asker) {
+        this.user = user;
+        this.asker = asker;
         SimpleDateFormat formatter = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss");
         Date date = new Date();
         this.date=date;
     }
 
-    public String getId() {
-        return id;
+    public User getUser() {
+        return user;
     }
 
-    public String getImageId() {
-        return imageId;
+    public void setUser(User user) {
+        this.user = user;
     }
 
-    public String getComment() {
-        return comment;
+    public String getAsker() {
+        return asker;
     }
 
-    public String getUsername() {
-        return username;
+    public void setAsker(String asker) {
+        this.asker = asker;
     }
 
     public Date getDate() {
         return date;
+    }
+
+    public void setDate(Date date) {
+        this.date = date;
     }
 }
