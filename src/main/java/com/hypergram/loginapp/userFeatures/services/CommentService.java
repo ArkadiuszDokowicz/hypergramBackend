@@ -4,10 +4,6 @@ import com.hypergram.loginapp.fileRepository.FilesStorageService;
 import com.hypergram.loginapp.model.Comment;
 import com.hypergram.loginapp.model.ImageDB;
 import com.hypergram.loginapp.model.User;
-
-import java.util.List;
-import java.util.Optional;
-
 import com.hypergram.loginapp.payload.request.CommentRequest;
 import com.hypergram.loginapp.payload.request.GetCommentRequest;
 import com.hypergram.loginapp.payload.request.NewCommentRequest;
@@ -22,7 +18,8 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
-import javax.xml.ws.http.HTTPException;
+import java.util.List;
+import java.util.Optional;
 
 @Service
 public class CommentService {
