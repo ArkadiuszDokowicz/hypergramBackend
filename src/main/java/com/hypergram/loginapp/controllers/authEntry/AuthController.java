@@ -1,15 +1,5 @@
 package com.hypergram.loginapp.controllers.authEntry;
 
-import java.security.NoSuchAlgorithmException;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
-import java.util.stream.Collectors;
-
-import javax.validation.Valid;
-import javax.xml.ws.Response;
-
 import com.hypergram.loginapp.model.ERole;
 import com.hypergram.loginapp.model.Role;
 import com.hypergram.loginapp.model.User;
@@ -18,6 +8,7 @@ import com.hypergram.loginapp.payload.request.SetNewPasswordRequest;
 import com.hypergram.loginapp.payload.request.SignupRequest;
 import com.hypergram.loginapp.payload.response.JwtResponse;
 import com.hypergram.loginapp.payload.response.MessageResponse;
+import com.hypergram.loginapp.repository.BanRepository;
 import com.hypergram.loginapp.repository.RoleRepository;
 import com.hypergram.loginapp.repository.UserRepository;
 import com.hypergram.loginapp.security.jwt.JwtTokenUtil;
@@ -33,6 +24,14 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
+
+import javax.validation.Valid;
+import java.security.NoSuchAlgorithmException;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RestController
@@ -56,9 +55,14 @@ public class AuthController {
     @Autowired
     JwtTokenUtil jwtBuilder;
 
+    @Autowired
+    BanRepository banRepository;
+
+
+
     @PostMapping("/signin")
     public ResponseEntity<?> authenticateUser(@Valid @RequestBody LoginRequest loginRequest) {
-
+        if(isNotBanned(loginRequest.getUsername())){
         Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(loginRequest.getUsername(), loginRequest.getPassword()));
 
@@ -75,6 +79,9 @@ public class AuthController {
                 userDetails.getUsername(),
                 userDetails.getEmail(),
                 roles));
+        }else{
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN,"You are locked");
+        }
     }
 
     @PostMapping("/signup")
@@ -161,5 +168,14 @@ public class AuthController {
             throw new ResponseStatusException(
                     HttpStatus.INTERNAL_SERVER_ERROR, "Service not available");
         }
+    }
+    private boolean isNotBanned(String username){
+                Optional<User> user = userRepository.findByUsername(username);
+                if(user.isPresent()){
+                    Optional<User> bannedUser = banRepository.findByUser(user.get());
+                    return !bannedUser.isPresent();
+                }else{
+                    return false;
+                }
     }
 }
