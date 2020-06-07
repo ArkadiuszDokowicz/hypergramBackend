@@ -9,6 +9,8 @@ import java.util.stream.Stream;
 public interface FilesStorageService {
     public void init();
 
+    public boolean deleteFileAsAdmin(String filename);
+
     public boolean isFilePublic(String fileOwnerName);
 
     public void save(MultipartFile file);

@@ -87,7 +87,7 @@ public class AdminActionController {
             if(imagesToRemove.isPresent()){
                 for(ImageDB image : imagesToRemove.get()){
                     String imagePath = image.getId()+".jpg";
-                    storageService.deletePicture(imagePath);
+                    storageService.deleteFileAsAdmin(imagePath);
                 }
             }
             userRepository.delete(user.get());

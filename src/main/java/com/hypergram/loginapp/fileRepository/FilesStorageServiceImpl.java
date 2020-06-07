@@ -126,6 +126,18 @@ public class FilesStorageServiceImpl implements FilesStorageService {
             return false;
         }
     }
+    public boolean deleteFileAsAdmin(String filename){
+        Optional<ImageDB> imageDB = imageRepository.findById(filename.replace(".jpg",""));
+        Path file =getUserPathByUserName(imageDB.get().getUser().getUsername()).resolve(filename);
+        try {
+            FileSystemUtils.deleteRecursively(file);
+            imageRepository.delete(imageDB.get());
+            return true;
+        } catch (IOException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
     @Override
     public boolean deletePictureAsAdminOrMod(String filename){
         try {
