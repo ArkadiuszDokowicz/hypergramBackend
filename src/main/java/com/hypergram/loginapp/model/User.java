@@ -47,6 +47,7 @@ public class User {
         this.follows = new ArrayList<>();
     }
 
+
     public String getId() {
         return id;
     }
@@ -88,8 +89,13 @@ public class User {
     }
 
     public boolean isPrivateAccount() {
-        return privateAccount;
+        if(!privateAccount){return false;}
+        else{
+            return true;
+        }
     }
+
+
 
     public void setPrivateAccount(boolean privateAccount) {
         this.privateAccount = privateAccount;

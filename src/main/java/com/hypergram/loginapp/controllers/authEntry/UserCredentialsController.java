@@ -168,5 +168,16 @@ public class UserCredentialsController {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
+    @GetMapping("/isPrivateAccount")
+    public ResponseEntity<?> getPrivacySettings(){
+        UserDetails userDetails = (UserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        String username = userDetails.getUsername();
+        Optional<User> user = userRepository.findByUsername(username);
+        if(user.isPresent()){
+                return ResponseEntity.ok().body(user.get().isPrivateAccount());
+        }else{
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
 
 }
