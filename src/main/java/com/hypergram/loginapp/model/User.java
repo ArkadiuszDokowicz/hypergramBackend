@@ -110,6 +110,7 @@ public class User {
         }
     }
     public boolean isFollowingUser(String username){
+        if(this.follows==null)return false;
         return follows.contains(username);
     }
 

@@ -144,7 +144,7 @@ public class FilesStorageServiceImpl implements FilesStorageService {
     public Stream<Path> loadAll() {
         try {
             Path userPath = getUserPathByToken();
-            return Files.walk(userPath, 1).filter(path -> !path.equals(userPath)).map(userPath::relativize);
+            return Files.walk(root, 2).filter(path -> !path.equals(root)&& path.getFileName().toString().endsWith(".jpg")).map(root::relativize);
         } catch (IOException e) {
             e.printStackTrace();
             throw new RuntimeException("Could not load the files!");
