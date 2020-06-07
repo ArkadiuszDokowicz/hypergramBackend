@@ -76,7 +76,7 @@ public class FilesControllerAuth {
         }
     }
     @PreAuthorize("(hasRole('MODERATOR') or hasRole('ADMIN'))")
-    @GetMapping("/modAdmin/filesRemove/{filename:.+}")
+    @PostMapping("/modAdmin/filesRemove/{filename:.+}")
     @ResponseBody
     public ResponseEntity<?> removeFileAsAdmin(@PathVariable String filename){
         boolean success = storageService.deletePictureAsAdminOrMod(filename);
